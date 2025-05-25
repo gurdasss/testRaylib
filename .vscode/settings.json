@@ -69,6 +69,10 @@
         "print": "cpp",
         "queue": "cpp",
         "stack": "cpp",
-        "numeric": "cpp"
+        "numeric": "cpp",
+        "iomanip": "cpp",
+        "cinttypes": "cpp",
+        "__split_buffer": "cpp",
+        "execution": "cpp"
     }
 }

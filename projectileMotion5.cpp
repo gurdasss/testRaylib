@@ -33,16 +33,23 @@ int main()
 
     while (!WindowShouldClose())
     {
+        arrow.setEndPos(GetMousePosition());
+        arrow.setStartPos(ball.getPosition());
+
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         {
-            arrow.setEndPos(GetMousePosition());
-            arrow.setStartPos(ball.getPosition());
 
             float angleInRadian{
                 Vector2LineAngle(ball.getPosition(),
                                  arrow.getEndPos())};
 
-            constexpr float speed{5 * gravityPower};
+            // calculate the speed based on the distance between
+            // ball's position and the position that the user
+            // had clicked
+            float speed{
+                Vector2Distance(ball.getPosition(),
+                                arrow.getEndPos()) *
+                5};
 
             std::cout << "Angle in Radian: " << angleInRadian << '\n';
             std::cout << "Angle in Degree: "
@@ -64,7 +71,7 @@ int main()
         // 1.0f means that the ball will not lose any
         // energy after hitting the floor
         // 0.0f means that the ball will not bounce at all
-        constexpr float bounceFactor{0.9f};
+        constexpr float bounceFactor{0.5f};
 
         if (ball.getY() + ball.getRadius() > screenH)
         {

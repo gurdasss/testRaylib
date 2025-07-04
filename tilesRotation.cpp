@@ -15,13 +15,16 @@ int main()
     constexpr float tileH{20};
 
     Rectangle refRec{
-        (screenW / 2.0f) - 20,
-        100 - 20,
-        tileW * 2,
-        tileH * 2,
+        (screenW / 2.0f) - 30,
+        100 - 30,
+        tileW * 3,
+        tileH * 3,
     };
 
     Rectangle redTile{
+        // add half of width and height
+        // to set the tile to its true
+        // center (relative to refRec)
         refRec.x + (refRec.width / 2.0f),
         refRec.y + (refRec.height / 2.0f),
         tileW,
@@ -37,7 +40,8 @@ int main()
         // after (targetFPS / tileFPS) frame(s)
         if (++s_frameCounter >= (targetFPS / tileFPS))
         {
-
+            // update the Y position of both the tile
+            // and optionally of refRec
             refRec.y += tileH;
             redTile.y += tileH;
 
@@ -52,8 +56,7 @@ int main()
 
         static float tileRotation{};
 
-        // TODO: Somehow need to rotate two-tiles clockwise
-        // based on user's input
+        // rotate the tile 90 degree around its pivot
         if (IsKeyPressed(KEY_UP))
         {
             if (tileRotation >= 360.0f)
@@ -85,13 +88,33 @@ int main()
 
         DrawRectanglePro(
             redTile,
-            Vector2{},
+            // set the pivot to half left side and
+            // half upward
+            Vector2{-tileW / 2.0f, -tileH / 2.0f},
             tileRotation,
             RED);
 
         DrawRectanglePro(
             redTile,
-            Vector2{tileW, 0.0f},
+            // set the pivot to half right side and
+            // half upward
+            Vector2{tileW / 2.0f, -tileH / 2.0},
+            tileRotation,
+            RED);
+
+        DrawRectanglePro(
+            redTile,
+            // set the pivot to top-right + half right side and
+            // half upward
+            Vector2{tileW + (tileW / 2.0f), -tileW / 2.0},
+            tileRotation,
+            RED);
+
+        DrawRectanglePro(
+            redTile,
+            // set the pivot to half right side and
+            // half downward
+            Vector2{tileW / 2.0f, tileW / 2.0},
             tileRotation,
             RED);
 

@@ -1,4 +1,5 @@
 #include <raylib.h>
+#include <raymath.h>
 #include <iostream>
 
 int main()
@@ -8,84 +9,110 @@ int main()
 
     InitWindow(screenW, screenH, "TEST");
 
-    SetTargetFPS(60);
+    constexpr int targetFPS{60};
+    SetTargetFPS(targetFPS);
+
+    constexpr float tileW{20};
+    constexpr float tileH{20};
+
+    constexpr Rectangle refRec{
+        (screenW / 2.0f) - 30,
+        100 - 30,
+        tileW * 2,
+        tileH * 2,
+    };
+
+    constexpr Rectangle redTile{
+        // add half of width and height
+        // to set the tile to its true
+        // center (relative to refRec)
+        refRec.x + tileW,
+        refRec.y + tileH,
+        tileW,
+        tileH,
+    };
+
+    Vector2 recPos{redTile.x, redTile.y};
 
     while (!WindowShouldClose())
     {
 
+#if 0
+        static int s_frameCounter{};
+        constexpr int tileFPS{2};
+
+        // update the tile's Y position
+        // after (targetFPS / tileFPS) frame(s)
+        if (++s_frameCounter >= (targetFPS / tileFPS))
+        {
+            // update the Y position of both the tile
+            // and optionally of refRec
+            refRec.y += tileH;
+            redTile.y += tileH;
+
+            s_frameCounter = 0;
+        }
+
+        // increase the frame counter's count
+        // so that tile's Y position will
+        // update much more quickly
+        if (IsKeyDown(KEY_DOWN))
+            s_frameCounter += 10;
+
+
+        float directionY{};
+
+        // change the Y direction of tile
+        // to either left or right
+        if (IsKeyPressed(KEY_RIGHT))
+            directionY = 1;
+        else if (IsKeyPressed(KEY_LEFT))
+            directionY = -1;
+
+        // change tile's X position based on user's input
+        refRec.x += (tileW * directionY);
+        redTile.x += (tileW * directionY);
+
+#endif
+
         static float tileRotation{};
 
-        if (IsKeyPressed(KEY_SPACE))
+        // rotate the tile 90 degree around its pivot
+        if (IsKeyPressed(KEY_UP))
         {
             if (tileRotation >= 360.0f)
                 tileRotation = 0;
 
-            tileRotation += 90;
+            float tileRotationRad{tileRotation * (PI / 180.0f)};
+            std::clog << "Current Rotation in Degree: " << tileRotation << '\n';
+            std::clog << "Current Rotation in Radians: "
+                      << tileRotationRad << '\n';
 
-            std::clog << "Current Rotation: " << tileRotation << '\n';
+            Vector2 rotatedPoint{Vector2Rotate(Vector2{-1, 0}, tileRotationRad)};
+
+            recPos.x += rotatedPoint.x * tileW;
+            recPos.y += rotatedPoint.y * tileH;
+
+            printf("%.3fRad -> Vector2{%.3f, %.3f}\n",
+                   tileRotationRad, rotatedPoint.x, rotatedPoint.y);
+
+            tileRotation += 90;
         }
+
+        if (CheckCollisionPointRec(GetMousePosition(),
+                                   Rectangle{recPos.x, recPos.y, tileW, tileH}))
+            std::clog << "Collision detected!!\n";
 
         BeginDrawing();
 
         ClearBackground(RAYWHITE);
 
-        constexpr float tileW{20};
-        constexpr float tileH{20};
-
-        constexpr Rectangle refRec{
-            (screenW / 2.0f) - 30,
-            (screenH / 2.0f) - 30,
-            tileW * 3,
-            tileH * 3,
-        };
-
-        constexpr Rectangle redTile{
-            screenW / 2.0f,
-            screenH / 2.0f,
-            tileW,
-            tileH,
-        };
-
-        static float s_originX{};
-
-        if (IsKeyPressed(KEY_RIGHT))
-            s_originX += tileW / 2.0f;
-        else if (IsKeyPressed(KEY_LEFT))
-            s_originX -= tileW / 2.0f;
-
-        static float s_originY{};
-
-        if (IsKeyPressed(KEY_UP))
-            s_originY -= tileH / 2.0f;
-        else if (IsKeyPressed(KEY_DOWN))
-            s_originY += tileH / 2.0f;
-
-        if (IsKeyPressed(KEY_BACKSPACE))
-        {
-            s_originX = 0;
-            s_originY = 0;
-        }
-
-        std::clog << "CURRENT X ORIGIN: " << s_originX << '\n';
-        std::clog << "CURRENT Y ORIGIN: " << s_originY << '\n';
-
         DrawRectangleRec(refRec, LIGHTGRAY);
-
-        DrawCircleV(Vector2{
-                        redTile.x,
-                        redTile.y,
-                    },
-                    4, BLUE);
-
-        DrawCircleV(Vector2{
-                        redTile.x + s_originX,
-                        redTile.y + s_originY,
-                    },
-                    4, BLACK);
+        DrawCircleV(recPos, 2.5f, BLACK);
 
         DrawRectanglePro(
             redTile,
-            Vector2{s_originX, s_originY},
+            Vector2{},
             tileRotation,
             RED);
 

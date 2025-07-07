@@ -2,6 +2,8 @@
 #include <raymath.h>
 #include <iostream>
 
+void rotateRec(const Vector2 &orientation, Vector2 &recPos, float radian);
+
 int main()
 {
     constexpr int screenW{800};
@@ -15,24 +17,17 @@ int main()
     constexpr float tileW{20};
     constexpr float tileH{20};
 
-    constexpr Rectangle refRec{
+    Rectangle refRec{
         (screenW / 2.0f) - 30,
         100 - 30,
         tileW * 2,
         tileH * 2,
     };
 
-    constexpr Rectangle redTile{
-        // add half of width and height
-        // to set the tile to its true
-        // center (relative to refRec)
-        refRec.x + tileW,
-        refRec.y + tileH,
-        tileW,
-        tileH,
-    };
-
-    Vector2 recPos{redTile.x, redTile.y};
+    // only the position needs to be updated
+    // and setting initial position relative to reference rectangle
+    Vector2 recPos1{refRec.x + tileW, refRec.y + tileH};
+    Vector2 recPos2{refRec.x, refRec.y + tileH};
 
     while (!WindowShouldClose())
     {
@@ -48,7 +43,8 @@ int main()
             // update the Y position of both the tile
             // and optionally of refRec
             refRec.y += tileH;
-            redTile.y += tileH;
+            recPos1.y += tileH;
+            recPos2.y += tileH;
 
             s_frameCounter = 0;
         }
@@ -58,7 +54,6 @@ int main()
         // update much more quickly
         if (IsKeyDown(KEY_DOWN))
             s_frameCounter += 10;
-
 
         float directionY{};
 
@@ -71,7 +66,8 @@ int main()
 
         // change tile's X position based on user's input
         refRec.x += (tileW * directionY);
-        redTile.x += (tileW * directionY);
+        recPos1.x += (tileW * directionY);
+        recPos2.x += (tileW * directionY);
 
 #endif
 
@@ -88,19 +84,22 @@ int main()
             std::clog << "Current Rotation in Radians: "
                       << tileRotationRad << '\n';
 
-            Vector2 rotatedPoint{Vector2Rotate(Vector2{-1, 0}, tileRotationRad)};
+            // {-1, 0} for recPos1
+            // {0, -1} for recPos2
 
-            recPos.x += rotatedPoint.x * tileW;
-            recPos.y += rotatedPoint.y * tileH;
+            // rotate each Vector2 position based on the
+            // respective orientation and rotation in radian
+            rotateRec(Vector2{-1, 0}, recPos1, tileRotationRad);
+            rotateRec(Vector2{0, -1}, recPos2, tileRotationRad);
 
-            printf("%.3fRad -> Vector2{%.3f, %.3f}\n",
-                   tileRotationRad, rotatedPoint.x, rotatedPoint.y);
+            // printf("%.3fRad -> Vector2{%.3f, %.3f}\n",
+            //        tileRotationRad, rotatedPoint.x, rotatedPoint.y);
 
             tileRotation += 90;
         }
 
         if (CheckCollisionPointRec(GetMousePosition(),
-                                   Rectangle{recPos.x, recPos.y, tileW, tileH}))
+                                   Rectangle{recPos1.x, recPos1.y, tileW, tileH}))
             std::clog << "Collision detected!!\n";
 
         BeginDrawing();
@@ -108,13 +107,11 @@ int main()
         ClearBackground(RAYWHITE);
 
         DrawRectangleRec(refRec, LIGHTGRAY);
-        DrawCircleV(recPos, 2.5f, BLACK);
+        DrawCircleV(recPos1, 2.5f, BLACK);
+        DrawCircleV(recPos2, 2.5f, BLACK);
 
-        DrawRectanglePro(
-            redTile,
-            Vector2{},
-            tileRotation,
-            RED);
+        DrawRectangle(recPos1.x, recPos1.y, tileW, tileH, RED);
+        DrawRectangle(recPos2.x, recPos2.y, tileW, tileH, RED);
 
         DrawFPS(0, 0);
 
@@ -124,4 +121,15 @@ int main()
     CloseWindow();
 
     return 0;
+}
+
+void rotateRec(const Vector2 &orientation, Vector2 &recPos, float radian)
+{
+    constexpr float tileW{20};
+    constexpr float tileH{20};
+
+    Vector2 rotatedPoint{Vector2Rotate(orientation, radian)};
+
+    recPos.x += rotatedPoint.x * tileW;
+    recPos.y += rotatedPoint.y * tileH;
 }

@@ -1,1 +1,4 @@
+bin/
 *.out
+cmake-build-*
+*.xml
